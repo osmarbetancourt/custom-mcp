@@ -1,0 +1,9 @@
+{
+  "mcpServers": {
+    "custom-mcp": {
+      "type": "http",
+      "url": "http://localhost:9000",
+      "tools": ["*"]
+    }
+  }
+}

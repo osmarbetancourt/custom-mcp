@@ -1,20 +1,17 @@
 version: '3.8'
 services:
   mcp-server:
-    build: .
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: custom-mcp-app
     container_name: mcp-server
     ports:
       - "9000:8000"
     volumes:
       - ./app:/app/app
+    env_file:
+      - .env
     environment:
       - PYTHONUNBUFFERED=1
-  test:
-    build: .
-    command: pytest
-    volumes:
-      - ./app:/app/app
-      - ./tests:/app/tests
-    environment:
-      - PYTHONUNBUFFERED=1
-      - PYTHONPATH=/app
+

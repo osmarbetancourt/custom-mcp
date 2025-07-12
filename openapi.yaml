@@ -1,0 +1,325 @@
+openapi: 3.0.3
+info:
+  title: MCP API
+  version: 1.0.0
+paths:
+  /render/databases:
+    get:
+      summary: List all database services
+      responses:
+        '200':
+          description: List of databases
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/RenderDatabase'
+  /render/databases/{databaseId}:
+    get:
+      summary: Get a specific database service
+      parameters:
+        - in: path
+          name: databaseId
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Database details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RenderDatabase'
+  /render/databases/{databaseId}/users:
+    get:
+      summary: List users for a database
+      parameters:
+        - in: path
+          name: databaseId
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: List of users
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/RenderDatabaseUser'
+  /render/databases/{databaseId}/connection:
+    get:
+      summary: Get connection info for a database
+      parameters:
+        - in: path
+          name: databaseId
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Connection info
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RenderDatabaseConnection'
+  /render/create-db:
+    post:
+      summary: Create a new PostgreSQL database on Render
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RenderCreateDBRequest'
+      responses:
+        '200':
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RenderCreateDBResponse'
+  /render/services:
+    get:
+      summary: List Render services
+      responses:
+        '200':
+          description: List of services
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+  /render/services/{serviceId}:
+    get:
+      summary: Get a specific Render service
+      parameters:
+        - in: path
+          name: serviceId
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Service details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RenderService'
+  /render/services:
+    post:
+      summary: Create a new Render service
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RenderCreateServiceRequest'
+      responses:
+        '200':
+          description: Created service
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RenderService'
+  /render/services/{serviceId}/deploys:
+    get:
+      summary: List deploys for a service
+      parameters:
+        - in: path
+          name: serviceId
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: List of deploys
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/RenderDeploy'
+  /render/deploys/{deployId}:
+    get:
+      summary: Get a specific deploy
+      parameters:
+        - in: path
+          name: deployId
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Deploy details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RenderDeploy'
+  /render/services/{serviceId}/env-vars:
+    get:
+      summary: List environment variables for a service
+      parameters:
+        - in: path
+          name: serviceId
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: List of environment variables
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/RenderEnvVar'
+  /render/services/{serviceId}/custom-domains:
+    get:
+      summary: List custom domains for a service
+      parameters:
+        - in: path
+          name: serviceId
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: List of custom domains
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/RenderCustomDomain'
+components:
+  schemas:
+    RenderDatabase:
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        type:
+          type: string
+        status:
+          type: string
+        connectionString:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+        # ...add more fields as needed
+    RenderDatabaseUser:
+      type: object
+      properties:
+        username:
+          type: string
+        role:
+          type: string
+        # ...add more fields as needed
+    RenderDatabaseConnection:
+      type: object
+      properties:
+        host:
+          type: string
+        port:
+          type: integer
+        database:
+          type: string
+        user:
+          type: string
+        password:
+          type: string
+        uri:
+          type: string
+        # ...add more fields as needed
+    RenderCreateDBRequest:
+      type: object
+      properties:
+        name:
+          type: string
+        region:
+          type: string
+          default: oregon
+      required:
+        - name
+    RenderCreateDBResponse:
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        dashboardUrl:
+          type: string
+        status:
+          type: string
+    RenderService:
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        type:
+          type: string
+        status:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+        # ...add more fields as needed
+    RenderCreateServiceRequest:
+      type: object
+      properties:
+        name:
+          type: string
+        type:
+          type: string
+        # ...add more fields as needed
+      required:
+        - name
+        - type
+    RenderDeploy:
+      type: object
+      properties:
+        id:
+          type: string
+        serviceId:
+          type: string
+        status:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+        # ...add more fields as needed
+    RenderEnvVar:
+      type: object
+      properties:
+        key:
+          type: string
+        value:
+          type: string
+        # ...add more fields as needed
+    RenderCustomDomain:
+      type: object
+      properties:
+        name:
+          type: string
+        status:
+          type: string
+        # ...add more fields as needed

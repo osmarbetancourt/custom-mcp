@@ -1,0 +1,109 @@
+[
+  {
+    "cursor": "2O5DpAuekfFnaWg1cGR2czczYWwyN3Iw",
+    "service": {
+      "autoDeploy": "no",
+      "autoDeployTrigger": "off",
+      "branch": "main",
+      "createdAt": "2025-07-05T06:38:02.691434Z",
+      "dashboardUrl": "https://dashboard.render.com/web/srv-d1kcgih5pdvs73al27r0",
+      "id": "srv-d1kcgih5pdvs73al27r0",
+      "name": "betancourt-osmar-portfolio-frontend",
+      "notifyOnFail": "default",
+      "ownerId": "tea-d1kadmre5dus73e9m270",
+      "repo": "https://github.com/osmarbetancourt/betancourt-osmar-portfolio",
+      "rootDir": "frontend",
+      "serviceDetails": {
+        "buildPlan": "starter",
+        "env": "node",
+        "envSpecificDetails": {
+          "buildCommand": "npm install; npm run build",
+          "startCommand": "npm run preview"
+        },
+        "healthCheckPath": "",
+        "maintenanceMode": {
+          "enabled": false,
+          "uri": ""
+        },
+        "numInstances": 1,
+        "openPorts": [
+          {
+            "port": 5173,
+            "protocol": "TCP"
+          }
+        ],
+        "plan": "starter",
+        "previews": {
+          "generation": "off"
+        },
+        "pullRequestPreviewsEnabled": "no",
+        "region": "oregon",
+        "runtime": "node",
+        "sshAddress": "srv-d1kcgih5pdvs73al27r0@ssh.oregon.render.com",
+        "url": "https://betancourt-osmar-portfolio-frontend.onrender.com"
+      },
+      "slug": "betancourt-osmar-portfolio-frontend",
+      "suspended": "not_suspended",
+      "suspenders": [],
+      "type": "web_service",
+      "updatedAt": "2025-07-12T00:37:42.28815Z"
+    }
+  },
+  {
+    "cursor": "5wPA2xdT_MR1ZzNlNWR1czczZWE3bzMw",
+    "service": {
+      "autoDeploy": "no",
+      "autoDeployTrigger": "off",
+      "branch": "main",
+      "createdAt": "2025-07-05T04:51:13.040359Z",
+      "dashboardUrl": "https://dashboard.render.com/web/srv-d1kaug3e5dus73ea7o30",
+      "id": "srv-d1kaug3e5dus73ea7o30",
+      "name": "betancourt-osmar-portfolio",
+      "notifyOnFail": "default",
+      "ownerId": "tea-d1kadmre5dus73e9m270",
+      "repo": "https://github.com/osmarbetancourt/betancourt-osmar-portfolio",
+      "rootDir": "portfolio_project",
+      "serviceDetails": {
+        "buildPlan": "starter",
+        "disk": {
+          "id": "dsk-d1klfp6r433s73copo0g",
+          "mountPath": "/project/media",
+          "name": "disk",
+          "sizeGB": 1
+        },
+        "env": "docker",
+        "envSpecificDetails": {
+          "dockerCommand": "",
+          "dockerContext": ".",
+          "dockerfilePath": "./Dockerfile"
+        },
+        "healthCheckPath": "",
+        "maintenanceMode": {
+          "enabled": false,
+          "uri": ""
+        },
+        "numInstances": 1,
+        "openPorts": [
+          {
+            "port": 10000,
+            "protocol": "TCP"
+          }
+        ],
+        "plan": "starter",
+        "previews": {
+          "generation": "off"
+        },
+        "pullRequestPreviewsEnabled": "no",
+        "region": "oregon",
+        "runtime": "docker",
+        "sshAddress": "srv-d1kaug3e5dus73ea7o30@ssh.oregon.render.com",
+        "url": "https://betancourt-osmar-portfolio.onrender.com"
+      },
+      "slug": "betancourt-osmar-portfolio",
+      "suspended": "not_suspended",
+      "suspenders": [],
+      "type": "web_service",
+      "updatedAt": "2025-07-12T00:36:59.485554Z"
+    }
+  }
+]
