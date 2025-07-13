@@ -75,6 +75,22 @@ def tool_func({param_sig}):
     print(f"[MCP SERVER] Registered {registered_tools} auto-generated Render API tools.")
 
     @mcp.tool
+    def post_render_services_service_id_deploys(service_id: str, body: dict = None) -> dict:
+        """
+        Trigger a deploy for the service with the provided ID.
+        body can include: clearCache (str), commitId (str), imageUrl (str)
+        """
+        url = f"{RENDER_API_URL}/services/{service_id}/deploys"
+        api_key = os.getenv("RENDER_API_KEY")
+        if not api_key:
+            raise Exception("RENDER_API_KEY not set in environment")
+        headers = {"Authorization": f"Bearer {api_key}", "Accept": "application/json"}
+        resp = httpx.post(url, headers=headers, json=body or {})
+        if not (200 <= resp.status_code < 300):
+            raise Exception(f"Render API error: {resp.status_code} {resp.text}")
+        return resp.json()
+        
+    @mcp.tool
     def get_render_services() -> list:
         """List all Render services in your account. Requires your Render API key as input."""
         url = RENDER_API_URL+"/services"
