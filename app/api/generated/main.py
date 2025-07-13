@@ -5,10 +5,17 @@
 from __future__ import annotations
 
 from typing import List
+
+import sys
 import os
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../../..')))
 import httpx
 import logging
-from fastapi import FastAPI, Path, HTTPException
+
+from fastapi import FastAPI, Path, HTTPException, Query
+from render_public_api_client.client import AuthenticatedClient
+from render_public_api_client.api.deploys import list_deploys
+from render_public_api_client.types import UNSET
 
 from .models import (
     RenderCreateDBRequest,
@@ -28,11 +35,92 @@ app = FastAPI(
     version='1.0.0',
 )
 
+
+
+try:
+    from render_auto_routes import router as auto_router
+    app.include_router(auto_router, prefix="")
+
+    @app.get("/auto-routes",tags=["render","automatic"])
+    async def list_auto_routes():
+        routes = []
+        for route in auto_router.routes:
+            if hasattr(route, 'methods') and hasattr(route, 'path'):
+                for method in route.methods:
+                    if method not in ("HEAD", "OPTIONS"):
+                        routes.append({"method": method, "path": f"{route.path}"})
+        return sorted(routes, key=lambda r: (r["path"], r["method"]))
+
+    # Log unmapped endpoints to a file
+    def log_unmapped_endpoints():
+        mapped_paths = set()
+        for route in auto_router.routes:
+            if hasattr(route, 'path'):
+                mapped_paths.add(route.path)
+        # Load all expected routes from render_api_routes.py
+        try:
+            from render_api_routes import render_api_routes
+        except Exception as e:
+            print(f"[ERROR] Could not import render_api_routes: {e}", file=sys.stderr)
+            return
+        unmapped = []
+        for entry in render_api_routes:
+            route_path = entry["route"]
+            # FastAPI auto_router uses /demo prefix
+            demo_path = f"{route_path}"
+            if demo_path not in mapped_paths:
+                unmapped.append({"route": route_path, "methods": entry["methods"], "operationId": entry["operationId"]})
+        if unmapped:
+            with open("unmapped_endpoints.log", "w", encoding="utf-8") as f:
+                for entry in unmapped:
+                    f.write(f"{entry}\n")
+            print(f"[INFO] Wrote {len(unmapped)} unmapped endpoints to unmapped_endpoints.log", file=sys.stderr)
+        else:
+            print("[INFO] All endpoints mapped.", file=sys.stderr)
+
+    log_unmapped_endpoints()
+
+    @app.get("/unmapped-endpoints", tags=["demo"])
+    async def get_unmapped_endpoints():
+        """
+        Return the contents of unmapped_endpoints.log (endpoints that could not be mapped by the auto-router).
+        """
+        try:
+            with open("unmapped_endpoints.log", "r", encoding="utf-8") as f:
+                lines = f.readlines()
+            return {"unmapped_endpoints": [line.strip() for line in lines]}
+        except FileNotFoundError:
+            return {"unmapped_endpoints": [], "detail": "No unmapped_endpoints.log file found."}
+except Exception as e:
+    print(f"[WARN] Could not mount auto-generated router: {e}", file=sys.stderr)
+
+@app.get('/render/services/{serviceId}/deploys-generated',tags=["render"])
+async def get_render_services_service_id_deploys_generated(
+    service_id: str = Path(..., alias='serviceId'),
+    limit: int = Query(20, description="Max number of deploys to return")
+):
+    """
+    List deploys for a service using the generated Render API client
+    """
+    api_key = os.getenv("RENDER_API_KEY")
+    if not api_key:
+        raise HTTPException(status_code=500, detail="RENDER_API_KEY not set in environment")
+    client = AuthenticatedClient(
+        base_url="https://api.render.com/v1",
+        token=api_key
+    )
+    result = list_deploys.sync(service_id=service_id, client=client, limit=limit)
+    if isinstance(result, list):
+        return [d.to_dict() for d in result]
+    else:
+        # result is an Error object
+        raise HTTPException(status_code=400, detail=str(result))
+
 # --- MCP Endpoints ---
 from fastapi import Body
 from fastapi.responses import JSONResponse
 
-@app.get('/v1/health')
+@app.get('/v1/health',tags=["copilot-mcp"])
 async def mcp_health():
     """
     MCP health check endpoint
@@ -93,7 +181,11 @@ async def get_render_databases():
         resp = await client.get(url, headers=get_headers())
     if resp.status_code != 200:
         raise HTTPException(status_code=resp.status_code, detail=resp.text)
-    return resp.json()
+    data = resp.json()
+    # Always return a list, even if API returns None or unexpected value
+    if not isinstance(data, list):
+        return []
+    return data
 
 
 @app.get('/render/databases/{databaseId}')

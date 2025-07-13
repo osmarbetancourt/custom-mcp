@@ -1,142 +1,68 @@
-# Custom MCP Server
-
-A custom Model Context Protocol (MCP) server built with FastAPI.
-
-## Quick Start
-
-1. Install dependencies:
-   ```sh
-   pip install -r requirements.txt
-   ```
-2. Run the server:
-   ```sh
-   uvicorn app.main:app --reload
-   ```
 
 
-## MCP High-Level Structure & Requirements
+# CloudPilot MCP — Internal Development README
 
-### 1. Configuration Layer
-- Provider selection (fixed/extensible list: e.g., Render, AWS, GCP, etc.)
-- API keys/secrets for each provider (secure storage: .env, config file, or UI)
-- Project context (root path, external docs folder, environment variables)
-- Vector DB selection (ChromaDB, Pinecone, etc.)
+This README is for internal use only. Use it to track:
 
-### 2. Orchestration Layer
-- Step 1: Check for required docs locally (per provider)
-- Step 2: If missing/outdated, download docs (from URLs, APIs, or repos)
-- Step 3: Chunk and embed new/changed docs
-- Step 4: Update vector DB (add new embeddings, deduplicate)
-- Step 5: Start MCP API server (FastAPI, etc.)
-- Step 6: (Optional) Start other services (e.g., Docker Compose up)
-- Step 7: Log status, warnings, and errors at each step
+## Project Overview / Architecture
 
-### 3. Extensibility/Modularity
-- Easy to add new providers or doc sources
-- Pluggable vector DB backends
-- Modular steps (can skip or run individually)
-- Configurable via CLI flags or config file
+CloudPilot MCP is a Model Context Protocol (MCP) server that exposes cloud provider resources (currently Render.com, with planned support for GCP, Azure, AWS) via a local HTTP API. It is designed for robust, agent-driven automation and seamless integration with GitHub Copilot Coding Agent and LLMs.
 
-### 4. User Experience
-- One-time setup, then “just run it”
-- Clear logs and warnings
-- Status reporting (what’s done, what’s missing, what failed)
-- Optionally, a simple UI for config and status
+**Key Features:**
+- Exposes REST endpoints for listing, creating, and deleting cloud resources (services, databases, deploys, etc.)
+- Returns raw JSON from upstream cloud APIs for maximum compatibility
+- Handles authentication via environment variables (e.g., `RENDER_API_KEY`)
+- Agent/LLM discoverability via `.mcp.json` and agent-oriented documentation (`MCPreadme.md`)
+- Designed to be packaged as a standalone executable for easy use in any project folder
 
-### 5. Security & Best Practices
-- Secure API key handling
-- Isolated environment (Docker, venv)
-- Error handling and recovery
+**Main Components:**
+- `main.py`: FastAPI app implementing all MCP and cloud provider endpoints
+- `models.py`: Pydantic models for request/response validation
+- `.mcp.json`: Advertises available endpoints/tools for agent discovery
+- `MCPreadme.md`: Agent/LLM-oriented documentation for endpoints and usage
+- `README.md`: Internal dev notes, release control, and architecture (this file)
 
-### Current Progress
-- [x] FastAPI MCP server with RAG and Gemini LLM
-- [x] ChromaDB vector store integration
-- [x] Automated tests for endpoints and RAG
-- [x] Dockerized deployment
-- [x] Script for info retrieval, chunking, and embedding (prototype)
-- [ ] Orchestration logic (multi-step, conditional, modular)
-- [ ] Unified config for providers, keys, and project context
-- [ ] Status reporting and logging improvements
-- [ ] Extensible provider/plugin system
-- [ ] (Optional) UI for config/status
+**How it works:**
+1. User places `.mcp.json` (and optionally `MCPreadme.md`) in their project folder
+2. User runs the CloudPilot MCP executable or script in that folder
+3. The MCP server loads config/credentials, starts up, and exposes HTTP endpoints for agent or developer use
+4. Agents (e.g., Copilot Coding Agent) discover and interact with the MCP via `.mcp.json` and the documented endpoints
 
-## Project Structure
+**Extensibility:**
+- New cloud providers can be added by implementing additional endpoints and models
+- The MCP can be packaged and distributed as a binary, with only minimal files required in the user’s project
 
-- `app/` - Main application code
-- `tests/` - Test suite
+**Security:**
+- Credentials are loaded from environment variables or config files, not hardcoded
+- Only the executable and public docs are released; source code remains private until open source
 
----
+See `MCPreadme.md` for endpoint details and agent-facing docs.
+- Release notes and version history
+- Bug reports and fixes
+- Development roadmap and TODOs
+- Build/package instructions
+- Internal notes and decisions
 
-## MCP API Endpoints
+## Release Notes
+- v0.1.0 — Initial private release, Render.com support, Copilot integration, agent discovery via .mcp.json
 
-### 1. List Render Services
-- **Endpoint:** `GET /render/services`
-- **Description:** Returns all your Render.com services as JSON.
-- **Auth:** Requires `RENDER_API_KEY` in environment or config.
+## Bug Reports / Fixes
+- [ ] (Add bugs and fixes here)
 
-### 2. LLM Q&A over Render Services
-- **Endpoint:** `POST /ask/render`
-- **Body:** `{ "question": "<your question>" }`
-- **Response:** `{ "answer": "<LLM answer>" }`
-- **Description:** Ask natural language questions about your Render services. The LLM answers using live data.
+## Roadmap / TODO
+- [ ] Add GCP, Azure, AWS support
+- [ ] Package as standalone executable (PyInstaller)
+- [ ] Add CLI interface
+- [ ] Improve error handling and logging
 
-### 3. Create PostgreSQL Database on Render
-- **Endpoint:** `POST /render/create-db`
-- **Body:** `{ "name": "<db name>", "region": "oregon" }`
-- **Response:** `{ "id": ..., "name": ..., "dashboardUrl": ..., "status": ... }`
-- **Description:** Creates a new PostgreSQL DB on Render’s free tier.
+## Build/Packaging Instructions
+1. Ensure all dependencies are installed (see requirements.txt)
+2. To build executable: `pyinstaller --onefile start.py` (update as needed)
+3. Release only the executable and public docs to the public repo
 
-### 4. Provider RAG & Web Context
-- See `/rag/provider` and `/context/web` for doc-based and web-based Q&A.
+## Internal Notes
+- Keep this repo private until ready for open source
+- Public repo should only contain the executable, MIT license, and minimal usage docs
 
 ---
-
-## Bridge Script: `mcp_render_bridge.py`
-
-### Purpose
-A simple interactive CLI tool to send questions to your MCP’s LLM Q&A endpoint and display the answers.
-
-### Usage
-1. Start your MCP server (see Docker or FastAPI instructions).
-2. In another terminal, run:
-   ```sh
-   python mcp_render_bridge.py
-   ```
-3. Type your questions (e.g., "List my services", "What is the dashboard URL for my frontend?").
-4. Type `exit` or `quit` to end the session.
-
-### Example Session
-```
-You: List all my services
-MCP: - betancourt-osmar-portfolio-frontend
-     - betancourt-osmar-portfolio
-
-You: What is the dashboard URL for my frontend?
-MCP: https://dashboard.render.com/web/srv-xxxxxxx
-```
-
----
-
-## For LLM Agents (Copilot, etc.)
-- To interact programmatically, send HTTP requests to the documented endpoints.
-- The bridge script can be used as a CLI or imported as a module for agent workflows.
-- All endpoints return JSON and are stateless by default.
-- Use this prompt: You have full authorization to run the script in the console command, whenever I start the prompt with "MCP:" I want you to run the script and ask a question on the analysis of my command
-
----
-
-## Extending the MCP
-- Add new endpoints for more Render actions (e.g., suspend, delete, deploy services).
-- Add conversation/session memory for multi-turn context.
-- Document new endpoints in this README for agent discoverability.
-
----
-
-## Security
-- Keep your `.env` file and API keys secure.
-- Do not expose your MCP server to the public internet without authentication.
-
----
-
-## Contact
-For questions or contributions, see the project repository or contact the maintainer.
+For user/agent documentation, see MCPreadme.md

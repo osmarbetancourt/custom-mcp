@@ -4,12 +4,10 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-    image: custom-mcp-app
+    #image: betancourtosmar/cloudpilot-mcp:latest
     container_name: mcp-server
     ports:
       - "9000:8000"
-    volumes:
-      - ./app:/app/app
     env_file:
       - .env
     environment:

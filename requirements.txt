@@ -6,3 +6,6 @@ requests
 beautifulsoup4
 lxml
 fastapi-code-generator
+attrs>=22.2.0
+httpx>=0.23.0
+openapi-python-client
