@@ -1,10 +1,9 @@
-version: '3.8'
 services:
-  mcp-server:
-    build:
-      context: .
-      dockerfile: Dockerfile
-    #image: betancourtosmar/cloudpilot-mcp:latest
+  custom-mcp-server:
+    #build:
+    #  context: .
+    #  dockerfile: Dockerfile
+    image: betancourtosmar/cloudpilot-mcp:latest
     container_name: mcp-server
     ports:
       - "9000:8000"
@@ -12,4 +11,3 @@ services:
       - .env
     environment:
       - PYTHONUNBUFFERED=1
-
